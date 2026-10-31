@@ -748,7 +748,7 @@ function drawLabels(time) {
     const X = sx(n.x, n.y), Y = sy(n.x, n.y) - 74 - (n.ghost ? 10 : 0);
     const a = clamp((6.5 - d) / 2, 0, 1);
     ctx.globalAlpha = a;
-    ctx.font = '600 12px "Alegreya Sans", sans-serif';
+    ctx.font = "600 12px 'Avenir Next', Avenir, 'Segoe UI', system-ui, -apple-system, sans-serif";
     const label = n.name;
     const w = ctx.measureText(label).width + 12;
     ctx.fillStyle = 'rgba(6,12,24,0.7)'; ctx.fillRect(X - w / 2, Y - 13, w, 17);
@@ -756,7 +756,7 @@ function drawLabels(time) {
     const m = npcMarker(n);
     if (m) {
       const by = Y - 22 + Math.sin(time * 4) * 3;
-      ctx.font = '700 22px Cinzel, serif';
+      ctx.font = "700 22px 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif";
       ctx.fillStyle = m === '?' ? '#7dffc4' : '#ffd86b';
       ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 12;
       ctx.fillText(m, X, by);
