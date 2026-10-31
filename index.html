@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Akademie Silberfjord für Zauberkunst</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <!-- Spiel-HUD -->
+  <div id="hud" class="hidden">
+    <div id="profile-card" class="frost">
+      <div id="pc-crest"></div>
+      <div class="pc-info">
+        <div id="pc-name"></div>
+        <div id="pc-house"></div>
+        <div id="pc-points"></div>
+        <div id="mana"><div id="mana-fill"></div><span id="mana-text"></span></div>
+      </div>
+    </div>
+    <canvas id="minimap" class="frost" width="220" height="112"></canvas>
+    <div id="room-banner"></div>
+    <div id="prompt"></div>
+    <div id="spell-info" class="frost"></div>
+    <div id="spellbar"></div>
+    <div id="keyhint">[Q] Aufgaben · [H] Hilfe · [M] Karte</div>
+    <div id="quest-panel" class="panel frost hidden"></div>
+    <div id="help-panel" class="panel frost hidden"></div>
+  </div>
+
+  <div id="dialog" class="frost hidden">
+    <div id="dlg-portrait"></div>
+    <div class="dlg-body">
+      <div id="dlg-name"></div>
+      <div id="dlg-text"></div>
+    </div>
+    <div id="dlg-next">E ▸</div>
+  </div>
+  <div id="toasts"></div>
+  <div id="fade"></div>
+
+  <!-- Titel -->
+  <section id="screen-title" class="screen">
+    <div class="title-wrap">
+      <div class="sigil">✦</div>
+      <h1>Akademie Silberfjord</h1>
+      <h2>für Zauberkunst</h2>
+      <p class="lead">Tief in einem eisigen Fjord, eingerahmt von steilen Felswänden, thront eine uralte Burg. Ihre Türme sind in den Berg gehauen, Wasserfälle stürzen an den Fenstern vorbei – und über allem tanzen die Nordlichter.</p>
+      <div class="btns">
+        <button id="btn-new" class="btn primary">Neues Schuljahr beginnen</button>
+        <button id="btn-continue" class="btn hidden">Weiterspielen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Name & Aussehen -->
+  <section id="screen-name" class="screen hidden">
+    <div class="card frost">
+      <div class="step">Schritt 1 von 3</div>
+      <h3>Der Einschreibebrief</h3>
+      <p class="muted">„Sehr geehrte zukünftige Schülerin, sehr geehrter zukünftiger Schüler, wir freuen uns, Ihnen mitteilen zu dürfen …“ – Wie lautet dein Name?</p>
+      <div class="name-row">
+        <div class="name-form">
+          <label for="inp-name">Name</label>
+          <input id="inp-name" maxlength="18" autocomplete="off" spellcheck="false">
+          <label>Hautton</label>
+          <div id="sw-skin" class="swatches"></div>
+          <label>Haarfarbe</label>
+          <div id="sw-hair" class="swatches"></div>
+        </div>
+        <canvas id="name-preview" width="220" height="240"></canvas>
+      </div>
+      <div class="btns right"><button id="btn-name-next" class="btn primary">Weiter zur Stabmacherin ▸</button></div>
+    </div>
+  </section>
+
+  <!-- Zauberstab -->
+  <section id="screen-wand" class="screen hidden">
+    <div class="card frost wide">
+      <div class="step">Schritt 2 von 3</div>
+      <h3>Eschenhands Stabmacherei</h3>
+      <p class="muted">Im Kerzenlicht mustert dich die alte Stabmacherin Sigrun Eschenhand. „Jeder Stab ist einzigartig – so wie du. Wähle selbst, oder lass den Stab dich wählen.“</p>
+      <canvas id="wand-preview" width="560" height="120"></canvas>
+      <div id="wand-desc"></div>
+      <div class="wand-grid">
+        <div><label>Holz</label><div id="ch-wood" class="chips"></div></div>
+        <div><label>Kern</label><div id="ch-core" class="chips"></div></div>
+        <div><label>Biegsamkeit</label><div id="ch-flex" class="chips"></div></div>
+        <div><label>Länge <span id="lbl-length"></span></label><input id="inp-length" type="range" min="22" max="34" step="0.5"></div>
+      </div>
+      <div class="btns spread">
+        <button id="btn-wand-back" class="btn">◂ Zurück</button>
+        <button id="btn-wand-random" class="btn">✦ Der Stab wählt dich</button>
+        <button id="btn-wand-next" class="btn primary">Diesen Stab nehmen ▸</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Häuser -->
+  <section id="screen-house" class="screen hidden">
+    <div class="card frost wider">
+      <div class="step">Schritt 3 von 3</div>
+      <h3>Die Wahl des Hauses</h3>
+      <p class="muted">Vier Häuser, vier Herzen der Akademie. Wo gehörst du hin?</p>
+      <div id="house-cards"></div>
+      <div class="btns spread">
+        <button id="btn-house-back" class="btn">◂ Zurück</button>
+        <button id="btn-house-go" class="btn primary" disabled>Wähle ein Haus</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ende -->
+  <section id="screen-end" class="screen hidden">
+    <div class="card frost">
+      <div class="sigil small">✦</div>
+      <h3>Das Nordlichtfest</h3>
+      <p id="end-text"></p>
+      <div id="end-standings"></div>
+      <p id="end-runes" class="muted"></p>
+      <div class="btns spread">
+        <button id="btn-end-new" class="btn">Neues Schuljahr</button>
+        <button id="btn-end-explore" class="btn primary">Weiter erkunden</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/data.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
