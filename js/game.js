@@ -813,7 +813,7 @@ function newGame(profile) {
   G.player = makePlayer(21.5, 20.6);
   G.player.mana = maxMana();
   enterPlay();
-  if (!new URLSearchParams(location.search).get('nodlg')) setTimeout(() => talkTo(npcById('direktorin')), 1100);
+  setTimeout(() => talkTo(npcById('direktorin')), 1100);
 }
 function enterPlay() {
   G.state = 'play';
@@ -1008,22 +1008,4 @@ resize();
 buildWorld();
 previewCv = $('wand-preview');
 initMenus();
-
-// Testmodus: ?test=1 startet direkt ein Spiel
-const params = new URLSearchParams(location.search);
-if (params.get('test')) {
-  const hs = params.get('house') || 'gipfelsturm';
-  newGame({ name: 'Testi', skin: SKINS[1], hair: HAIRS[2], wand: randomWand(), house: hs });
-  if (params.get('x')) { G.player.x = +params.get('x'); G.player.y = +params.get('y'); snapCam(); for (let i = 0; i < 180; i++) update(1 / 60); }
-  if (params.get('all')) { G.known = SPELLS.map((s) => s.id); buildSpellbar(); }
-  if (params.get('nodlg')) G.fade = 0;
-  if (params.get('lumen')) { G.player.lumen = true; G.player.orb = { x: G.player.x, y: G.player.y }; }
-}
-if (params.get('screen')) {
-  const sc = params.get('screen');
-  draft.name = 'Testi'; showScreen('screen-' + sc);
-  if (sc === 'wand') buildWandUI();
-  if (sc === 'house') { draft.house = 'nebelsee'; buildHouseUI(); }
-}
-if (params.get('selftest')) { const sc = document.createElement('script'); sc.src = 'js/selftest.js'; document.body.appendChild(sc); }
 requestAnimationFrame(frame);
