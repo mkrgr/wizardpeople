@@ -65,6 +65,19 @@ Holz- und Kernfarbe siehst du im Spiel an deinem Stab und in deinen Zaubereffekt
 | H | Hilfe |
 | M | Minikarte ein/aus |
 
+### Auf dem iPad / Touch-Geräten
+
+| Geste | Aktion |
+|---|---|
+| Joystick links unten | Laufen (voller Ausschlag = Rennen) |
+| Zauber-Symbol antippen | Zauber wählen |
+| Auf die Spielfläche tippen | Zauber in diese Richtung wirken |
+| Hinweis „Sprechen mit …“ antippen | Sprechen |
+| Dialogfenster antippen | Dialog fortsetzen |
+| Buttons rechts unten | Aufgaben, Hilfe, Minikarte ein/aus |
+
+Die Steuerung erscheint automatisch auf Geräten mit Touchscreen. Auf schmalen Bildschirmen (z. B. iPad im Hochformat) ist die Minikarte ausgeblendet, dort entfällt der Karten-Button.
+
 ## Zaubersprüche
 
 | # | Zauber | Wirkung |

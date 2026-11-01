@@ -22,6 +22,7 @@ const ITEM_NAMES = { perle: 'Fjordperle', buch: 'Sternenbuch', kristall: 'Nordli
 const house = () => HOUSES[G.profile.house];
 const wand = () => G.profile.wand;
 const $ = (id) => document.getElementById(id);
+const isTouch = () => document.body.classList.contains('touch');
 
 // ───────────────────────── Werte ─────────────────────────
 function maxMana() { return 100 + (wand().core === 'eisbaer' ? 25 : 0); }
@@ -171,12 +172,17 @@ function renderQuestPanel() {
     <div class="qline">Runensteine: <b>${G.runes.length} / 8</b> <span class="muted">(je +10 Punkte)</span></div>
     <div class="qline">Zauber: ${known}</div>
     <div class="qline muted">Zauberstab: ${wandText(wand())}</div>
-    <div class="close-hint">[Q] schließen</div>`;
+    <div class="close-hint" data-panel="quests">${isTouch() ? '✕ Schließen' : '[Q] schließen'}</div>`;
 }
 function renderHelpPanel() {
   const hs = house();
-  $('help-panel').innerHTML = `<h3>Steuerung</h3>
-    <table>
+  const rows = isTouch() ? `
+      <tr><td>Joystick links unten</td><td>Laufen (ganz ausgelenkt: Rennen)</td></tr>
+      <tr><td>Zauber-Symbol</td><td>Zauber wählen</td></tr>
+      <tr><td>Auf das Spielfeld tippen</td><td>Zauber in diese Richtung wirken</td></tr>
+      <tr><td>Hinweis „Sprechen“</td><td>Sprechen</td></tr>
+      <tr><td>Dialog antippen</td><td>Dialog weiter</td></tr>
+      <tr><td>Aufgaben / Hilfe / Karte</td><td>Buttons rechts unten</td></tr>` : `
       <tr><td>W A S D / Pfeile</td><td>Laufen</td></tr>
       <tr><td>Umschalt</td><td>Rennen</td></tr>
       <tr><td>1 – 6</td><td>Zauber wählen</td></tr>
@@ -185,12 +191,14 @@ function renderHelpPanel() {
       <tr><td>E</td><td>Sprechen / Dialog weiter</td></tr>
       <tr><td>Q</td><td>Aufgaben</td></tr>
       <tr><td>M</td><td>Karte ein/aus</td></tr>
-      <tr><td>H</td><td>Diese Hilfe</td></tr>
+      <tr><td>H</td><td>Diese Hilfe</td></tr>`;
+  $('help-panel').innerHTML = `<h3>Steuerung</h3>
+    <table>${rows}
     </table>
     <div class="sep"></div>
     <div class="qline"><b>Hausvorteil (${hs.name}):</b> ${hs.bonus}</div>
     <div class="qline"><b>Stabkern (${coreOf(wand()).name}):</b> ${coreOf(wand()).bonus}</div>
-    <div class="close-hint">[H] schließen</div>`;
+    <div class="close-hint" data-panel="help">${isTouch() ? '✕ Schließen' : '[H] schließen'}</div>`;
 }
 function togglePanel(name) {
   G.panel = G.panel === name ? null : name;
@@ -198,6 +206,8 @@ function togglePanel(name) {
   $('help-panel').classList.toggle('hidden', G.panel !== 'help');
   if (G.panel === 'quests') renderQuestPanel();
   if (G.panel === 'help') renderHelpPanel();
+  $('tb-quests').classList.toggle('on', G.panel === 'quests');
+  $('tb-help').classList.toggle('on', G.panel === 'help');
 }
 
 // ───────────────────────── Dialoge ─────────────────────────
@@ -266,7 +276,7 @@ function learnSpell(id) {
   G.known.push(id);
   G.selected = SPELLS.findIndex((s) => s.id === id);
   sfx('learn');
-  toast(`<span class="tag">Neuer Zauber</span> ${SPELL[id].name} <span class="muted">[Taste ${G.selected + 1}]</span>`, 'spell');
+  toast(`<span class="tag">Neuer Zauber</span> ${SPELL[id].name} ${isTouch() ? '' : `<span class="muted">[Taste ${G.selected + 1}]</span>`}`, 'spell');
   const p = G.player;
   burst(p.x, p.y, 30, [SPELL[id].color, '#ffffff'], 50, 1.8, { g: -20 });
   updateSpellbar(); save();
@@ -647,10 +657,18 @@ function update(dt) {
     if (keys.a || keys.arrowleft) { mx -= 1; my += 1; }
     if (keys.d || keys.arrowright) { mx += 1; my -= 1; }
   }
+  let touchMul = 1;
+  if (!mx && !my && joy.active && joy.mag > 0 && !G.dialog && !G.modal) {
+    // Bildschirmrichtung → isometrische Weltrichtung
+    const a = joy.x / 32, b = joy.y / 16;
+    mx = a + b; my = b - a;
+    // halber Ausschlag = gehen (langsam), voller Ausschlag = rennen
+    touchMul = joy.mag >= 0.95 ? 1.6 : 0.4 + 0.6 * Math.min(1, joy.mag / 0.7);
+  }
   const len = Math.hypot(mx, my);
   if (len > 0) {
     mx /= len; my /= len;
-    const sp = moveSpeed() * (keys.shift ? 1.6 : 1);
+    const sp = moveSpeed() * (keys.shift ? 1.6 : 1) * touchMul;
     p.fx = mx; p.fy = my;
     tryMove(p, mx * sp * dt, my * sp * dt);
     p.moving = true; p.phase += dt * sp * 3.2;
@@ -716,7 +734,7 @@ function update(dt) {
   // Hinweis
   const n = !G.dialog && nearestNpc();
   const pr = $('prompt');
-  if (n) { pr.innerHTML = `<kbd>E</kbd> Sprechen mit ${n.name}`; pr.classList.add('show'); } else pr.classList.remove('show');
+  if (n) { pr.innerHTML = `<kbd>${isTouch() ? 'Tippen' : 'E'}</kbd> Sprechen mit ${n.name}`; pr.classList.add('show'); } else pr.classList.remove('show');
 
   updateMana();
   G.autosave += dt;
@@ -857,7 +875,7 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'e') interact();
   else if (k === 'q') togglePanel('quests');
   else if (k === 'h') togglePanel('help');
-  else if (k === 'm') $('minimap').classList.toggle('hidden');
+  else if (k === 'm') $('tb-map').classList.toggle('on', !$('minimap').classList.toggle('hidden'));
   else if (k === 'escape' && G.panel) togglePanel(G.panel);
 });
 window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
@@ -877,6 +895,67 @@ canvas.addEventListener('mousedown', (e) => {
   cast(SPELLS[G.selected].id, dx, dy);
 });
 $('dialog').addEventListener('click', advanceDialog);
+
+// Touch-Joystick (links unten, nur auf Touch-Geräten)
+const joy = { active: false, id: null, x: 0, y: 0, mag: 0 };
+(function initJoystick() {
+  const el = $('joystick'), knob = $('joy-knob');
+  const enable = () => {
+    document.body.classList.add('touch');
+    el.classList.remove('hidden');
+    $('touch-buttons').classList.remove('hidden');
+    $('dlg-next').textContent = '▸';
+    $('tb-map').classList.toggle('on', !$('minimap').classList.contains('hidden'));
+  };
+  if (navigator.maxTouchPoints > 0 || 'ontouchstart' in window) enable();
+  window.addEventListener('touchstart', enable, { once: true, passive: true });
+  const move = (e) => {
+    const r = el.getBoundingClientRect();
+    const rad = r.width / 2;
+    let dx = e.clientX - (r.left + rad), dy = e.clientY - (r.top + rad);
+    const d = Math.hypot(dx, dy);
+    if (d > rad) { dx *= rad / d; dy *= rad / d; }
+    const mag = Math.min(1, d / rad);
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    const dead = 0.12;
+    joy.mag = mag < dead ? 0 : (mag - dead) / (1 - dead);
+    joy.x = d ? dx / d : 0; joy.y = d ? dy / d : 0;
+  };
+  const end = (e) => {
+    if (e.pointerId !== joy.id) return;
+    joy.active = false; joy.id = null; joy.mag = 0;
+    knob.style.transform = '';
+    el.classList.remove('active');
+  };
+  el.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (joy.active) return;
+    joy.active = true; joy.id = e.pointerId;
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('active');
+    move(e);
+  });
+  el.addEventListener('pointermove', (e) => { if (e.pointerId === joy.id) move(e); });
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  el.addEventListener('lostpointercapture', end);
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+  // Buttons rechts unten = Q / H / M
+  const canUse = () => G.state === 'play' && !G.modal && !G.dialog;
+  $('tb-quests').addEventListener('click', () => { if (canUse()) togglePanel('quests'); });
+  $('tb-help').addEventListener('click', () => { if (canUse()) togglePanel('help'); });
+  $('tb-map').addEventListener('click', () => {
+    if (!canUse()) return;
+    const hidden = $('minimap').classList.toggle('hidden');
+    $('tb-map').classList.toggle('on', !hidden);
+  });
+  // „Schließen“ im Aufgaben-/Hilfefenster
+  for (const id of ['quest-panel', 'help-panel']) {
+    $(id).addEventListener('click', (e) => { const h = e.target.closest('.close-hint'); if (h && G.panel === h.dataset.panel) togglePanel(G.panel); });
+  }
+  // Hinweis „Sprechen mit …“ antippen = E
+  $('prompt').addEventListener('click', () => { if (G.state === 'play' && !G.modal && !G.dialog) interact(); });
+})();
 
 // ───────────────────────── Menüs ─────────────────────────
 const draft = { name: '', skin: SKINS[1], hair: HAIRS[1], wand: randomWand(), house: null };

@@ -2,7 +2,8 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Akademie Silberfjord für Zauberkunst</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -25,6 +26,12 @@
     <div id="prompt"></div>
     <div id="spell-info" class="frost"></div>
     <div id="spellbar"></div>
+    <div id="joystick" class="hidden"><div id="joy-knob"></div></div>
+    <div id="touch-buttons" class="hidden">
+      <button id="tb-quests" class="tbtn frost" aria-label="Aufgaben">Aufgaben</button>
+      <button id="tb-help" class="tbtn frost" aria-label="Hilfe">Hilfe</button>
+      <button id="tb-map" class="tbtn frost" aria-label="Karte ein/aus">Karte</button>
+    </div>
     <div id="keyhint">[Q] Aufgaben · [H] Hilfe · [M] Karte</div>
     <div id="quest-panel" class="panel frost hidden"></div>
     <div id="help-panel" class="panel frost hidden"></div>
